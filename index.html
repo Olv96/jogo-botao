@@ -6,38 +6,39 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        body { font-family: Arial, sans-serif; background-color: #1e272e; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
         
-        #tela-login { background: #34495e; padding: 30px; border-radius: 10px; margin-top: 50px; text-align: center; }
+        #tela-login { background: #2f3640; padding: 30px; border-radius: 10px; margin-top: 50px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         #tela-login input, #tela-login select { margin: 10px; padding: 10px; border-radius: 5px; border: none; width: 220px; text-transform: uppercase; }
-        #tela-login button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        #tela-login button { padding: 10px 20px; background: #44bd32; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        #tela-login button:hover { background: #4cd137; }
         
         #tela-jogo { display: none; width: 100%; max-width: 1600px; margin-top: 20px; justify-content: space-between; gap: 20px; padding: 0 20px; box-sizing: border-box; }
         
         #painel-jogo { flex: 3; display: flex; flex-direction: column; align-items: center; }
-        #painel-topo { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: #34495e; padding: 10px 20px; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; }
+        #painel-topo { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: #2f3640; padding: 10px 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); box-sizing: border-box; }
         
         .time-box { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 20px; }
-        .cor-box { width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; }
+        .cor-box { width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         
-        #placar { font-size: 36px; font-weight: bold; background: #1a252f; padding: 10px 30px; border-radius: 10px; display: flex; gap: 15px; align-items: center; border: 2px solid #7f8c8d; }
-        .sigla-placar { font-size: 24px; color: #bdc3c7; }
+        #placar { font-size: 36px; font-weight: bold; background: #192a56; padding: 10px 30px; border-radius: 10px; display: flex; gap: 15px; align-items: center; border: 2px solid #273c75; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .sigla-placar { font-size: 24px; color: #dcdde1; }
         
-        #status-turno { font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #f1c40f; text-transform: uppercase; }
+        #status-turno { font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #fbc531; text-transform: uppercase; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
         
-        canvas { background-color: #2ecc71; border: 5px solid #ecf0f1; border-radius: 10px; cursor: crosshair; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        canvas { border-radius: 10px; cursor: crosshair; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
         
-        #chat-container { flex: 1; min-width: 300px; background: #34495e; border-radius: 10px; display: flex; flex-direction: column; height: 790px; }
+        #chat-container { flex: 1; min-width: 300px; background: #2f3640; border-radius: 10px; display: flex; flex-direction: column; height: 790px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         #mensagens { flex: 1; padding: 15px; overflow-y: auto; text-align: left; font-size: 14px; }
-        #input-chat { display: flex; padding: 10px; background: #2c3e50; border-radius: 0 0 10px 10px; }
-        #input-chat input { flex: 1; padding: 12px; border-radius: 5px; border: none; font-size: 14px; }
-        #input-chat button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 5px; margin-left: 5px; cursor: pointer; font-weight: bold; }
+        #input-chat { display: flex; padding: 10px; background: #353b48; border-radius: 0 0 10px 10px; }
+        #input-chat input { flex: 1; padding: 12px; border-radius: 5px; border: none; font-size: 14px; background: #dcdde1;}
+        #input-chat button { padding: 10px 15px; background: #0097e6; color: white; border: none; border-radius: 5px; margin-left: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="tela-login">
-        <h2>Futebol de Botão</h2>
+        <h2>Futebol de Botão 3D</h2>
         <input type="text" id="nome-jogador" placeholder="Seu Nome"><br>
         <input type="text" id="nome-time" placeholder="Nome do Time"><br>
         <input type="text" id="sigla-time" placeholder="Sigla do Time (Ex: FLA)" maxlength="3"><br>
@@ -48,7 +49,7 @@
         </select><br>
 
         <label>Cor do seu time:</label><br>
-        <input type="color" id="cor-jogador" value="#ff0000" style="height: 40px;"><br>
+        <input type="color" id="cor-jogador" value="#e84118" style="height: 40px; cursor:pointer;"><br>
         <button onclick="entrarNoJogo()">Entrar no Jogo</button>
     </div>
 
@@ -73,7 +74,6 @@
                 </div>
             </div>
             
-            <!-- Campo ainda maior (1200x700) -->
             <canvas id="campo" width="1200" height="700"></canvas>
         </div>
         
@@ -101,27 +101,25 @@
         let corCasa = '#ff0000', corVis = '#0000ff';
         let golsCasa = 0, golsVis = 0;
 
-        // Posições Iniciais dos 5 Botões (Índice 0 = Goleiro, raio 35)
+        // Posições com o campo reajustado (Linhas da lateral nos X=60 e X=1140)
         const inicioCasa = [
-            { x: 70, y: 350, r: 35 },  // Goleiro
-            { x: 300, y: 200, r: 25 },
-            { x: 450, y: 350, r: 25 },
-            { x: 300, y: 500, r: 25 },
-            { x: 650, y: 350, r: 25 }
+            { x: 100, y: 350, r: 35 },  // Goleiro
+            { x: 350, y: 200, r: 25 },
+            { x: 500, y: 350, r: 25 },
+            { x: 350, y: 500, r: 25 },
+            { x: 700, y: 350, r: 25 }
         ];
         
         const inicioVis = [
-            { x: 1130, y: 350, r: 35 }, // Goleiro
-            { x: 900, y: 200, r: 25 },
-            { x: 750, y: 350, r: 25 },
-            { x: 900, y: 500, r: 25 },
-            { x: 550, y: 350, r: 25 }
+            { x: 1100, y: 350, r: 35 }, // Goleiro
+            { x: 850, y: 200, r: 25 },
+            { x: 700, y: 350, r: 25 },
+            { x: 850, y: 500, r: 25 },
+            { x: 500, y: 350, r: 25 }
         ];
 
-        // Montando os times com as posições iniciais
         let timeCasa = inicioCasa.map((p, i) => ({ id: i, x: p.x, y: p.y, raio: p.r, vx: 0, vy: 0 }));
         let timeVis = inicioVis.map((p, i) => ({ id: i, x: p.x, y: p.y, raio: p.r, vx: 0, vy: 0 }));
-        
         let bola = { x: 600, y: 350, raio: 12, vx: 0, vy: 0 };
         let pecaArrastada = null; 
 
@@ -168,8 +166,7 @@
                     document.getElementById('cor-box-vis').style.background = corVis;
                     
                     chatChannel.send({ type: 'broadcast', event: 'iniciar_partida', payload: { 
-                        hostTime: jogador.time, hostSigla: jogador.sigla, hostCor: corCasa, 
-                        visCor: corVis 
+                        hostTime: jogador.time, hostSigla: jogador.sigla, hostCor: corCasa, visCor: corVis 
                     }});
                     liberarJogo();
                 }
@@ -177,8 +174,7 @@
 
             chatChannel.on('broadcast', { event: 'iniciar_partida' }, (p) => {
                 if (!souCasa) {
-                    corCasa = p.payload.hostCor;
-                    corVis = p.payload.visCor;
+                    corCasa = p.payload.hostCor; corVis = p.payload.visCor;
                     document.getElementById('nome-casa').innerText = p.payload.hostTime;
                     document.getElementById('sigla-placar-casa').innerText = p.payload.hostSigla;
                     document.getElementById('cor-box-casa').style.background = corCasa;
@@ -199,9 +195,7 @@
                     timeCasa.forEach((b, i) => { b.x = d.posCasa[i].x; b.y = d.posCasa[i].y; b.vx = 0; b.vy = 0; });
                     timeVis.forEach((b, i) => { b.x = d.posVis[i].x; b.y = d.posVis[i].y; b.vx = 0; b.vy = 0; });
                     bola.x = d.blX; bola.y = d.blY; bola.vx = 0; bola.vy = 0;
-                    
-                    turnoDaCasa = d.turnoCasa;
-                    turnoEmAndamento = false;
+                    turnoDaCasa = d.turnoCasa; turnoEmAndamento = false;
                     atualizarStatusTurno();
                 }
             });
@@ -219,18 +213,15 @@
             }).subscribe();
         }
 
-        function liberarJogo() {
-            jogoIniciado = true;
-            atualizarStatusTurno();
-        }
+        function liberarJogo() { jogoIniciado = true; atualizarStatusTurno(); }
 
         function atualizarStatusTurno() {
             const status = document.getElementById('status-turno');
             if (!jogoIniciado) return;
             if (souCasa === turnoDaCasa) {
-                status.innerText = "Sua vez de jogar!"; status.style.color = "#2ecc71";
+                status.innerText = "Sua vez de jogar!"; status.style.color = "#4cd137";
             } else {
-                status.innerText = "Vez do adversário..."; status.style.color = "#e74c3c";
+                status.innerText = "Vez do adversário..."; status.style.color = "#e84118";
             }
         }
 
@@ -253,11 +244,11 @@
         function verificarEnter(e) { if (e.key === 'Enter') enviarMensagem(); }
         function mostrarMensagemNaTela(n, s, c, txt) {
             const cx = document.getElementById('mensagens');
-            cx.innerHTML += `<div style="margin-bottom:8px"><b style="color:${c}">[${s}] ${n}:</b> <span style="color:white">${txt}</span></div>`;
+            cx.innerHTML += `<div style="margin-bottom:8px"><b style="color:${c}">[${s}] ${n}:</b> <span style="color:#dcdde1">${txt}</span></div>`;
             cx.scrollTop = cx.scrollHeight;
         }
 
-        // FÍSICA
+        // FÍSICA E COLISÃO
         function calcularColisao(a, b) {
             let dx = b.x - a.x, dy = b.y - a.y;
             let dist = Math.hypot(dx, dy);
@@ -265,7 +256,6 @@
                 let sobre = (a.raio + b.raio) - dist;
                 let nx = dx / dist, ny = dy / dist;
                 
-                // Se a bola entrar num botão sem querer, empurra os dois
                 a.x -= nx * (sobre / 2); a.y -= ny * (sobre / 2);
                 b.x += nx * (sobre / 2); b.y += ny * (sobre / 2);
 
@@ -277,14 +267,34 @@
 
         function moverPeca(p, w, h) {
             p.x += p.vx; p.y += p.vy;
-            p.vx *= 0.985; p.vy *= 0.985; 
+            p.vx *= 0.98; p.vy *= 0.98; 
             if (Math.abs(p.vx) < 0.05) p.vx = 0; 
             if (Math.abs(p.vy) < 0.05) p.vy = 0;
 
-            if (p.x + p.raio > w) { p.x = w - p.raio; p.vx *= -0.7; }
-            if (p.x - p.raio < 0) { p.x = p.raio; p.vx *= -0.7; }
+            // Limites das laterais e fundo da rede
+            let naAreaEsq = p.y > 250 && p.y < 450;
+            let naAreaDir = p.y > 250 && p.y < 450;
+            
+            let limEsq = naAreaEsq ? 0 : 60;   // A rede vai até o 0
+            let limDir = naAreaDir ? 1200 : 1140; // A rede vai até o 1200
+
+            // Bater nas paredes Laterais
+            if (p.x + p.raio > limDir) { p.x = limDir - p.raio; p.vx *= -0.7; }
+            if (p.x - p.raio < limEsq) { p.x = limEsq + p.raio; p.vx *= -0.7; }
+            
+            // Bater nas paredes de Cima e Baixo
             if (p.y + p.raio > h) { p.y = h - p.raio; p.vy *= -0.7; }
             if (p.y - p.raio < 0) { p.y = p.raio; p.vy *= -0.7; }
+
+            // Bater nas "quinas" da trave se tentar sair do gol pela lateral
+            if (p.x < 60) {
+                if (p.y - p.raio < 250) { p.y = 250 + p.raio; p.vy *= -0.7; }
+                if (p.y + p.raio > 450) { p.y = 450 - p.raio; p.vy *= -0.7; }
+            }
+            if (p.x > 1140) {
+                if (p.y - p.raio < 250) { p.y = 250 + p.raio; p.vy *= -0.7; }
+                if (p.y + p.raio > 450) { p.y = 450 - p.raio; p.vy *= -0.7; }
+            }
         }
 
         function iniciarFisicaDoJogo() {
@@ -292,41 +302,41 @@
             const ctx = canvas.getContext('2d');
             let arrastando = false, mX = 0, mY = 0;
 
-            // O Clique ainda é no canvas para mirar no botão
             canvas.addEventListener('mousedown', (e) => {
                 if (!jogoIniciado || souCasa !== turnoDaCasa || turnoEmAndamento) return; 
-                
                 const rect = canvas.getBoundingClientRect();
-                let clickX = e.clientX - rect.left;
-                let clickY = e.clientY - rect.top;
-                
+                let clickX = e.clientX - rect.left; let clickY = e.clientY - rect.top;
                 let meuTime = souCasa ? timeCasa : timeVis;
                 
                 for (let p of meuTime) {
                     if (Math.hypot(clickX - p.x, clickY - p.y) < p.raio) {
-                        pecaArrastada = p;
-                        arrastando = true;
-                        break;
+                        pecaArrastada = p; arrastando = true; break;
                     }
                 }
             });
 
-            // O Movimento do mouse (mirar) agora é lido na JANELA INTEIRA!
             window.addEventListener('mousemove', (e) => {
                 if (arrastando) {
                     const rect = canvas.getBoundingClientRect();
-                    mX = e.clientX - rect.left; 
-                    mY = e.clientY - rect.top;
+                    mX = e.clientX - rect.left; mY = e.clientY - rect.top;
                 }
             });
 
-            // Soltar o mouse agora é lido na JANELA INTEIRA!
             window.addEventListener('mouseup', () => {
                 if (arrastando && pecaArrastada) {
-                    pecaArrastada.vx = (pecaArrastada.x - mX) * 0.12; 
-                    pecaArrastada.vy = (pecaArrastada.y - mY) * 0.12;
-                    arrastando = false; 
-                    turnoEmAndamento = true;
+                    let dx = pecaArrastada.x - mX;
+                    let dy = pecaArrastada.y - mY;
+                    let dist = Math.hypot(dx, dy);
+                    let forcaMax = 200; // Limite do elástico
+                    
+                    if (dist > forcaMax) {
+                        dx = (dx / dist) * forcaMax;
+                        dy = (dy / dist) * forcaMax;
+                    }
+
+                    pecaArrastada.vx = dx * 0.08; // Multiplicador ajustado para suavidade
+                    pecaArrastada.vy = dy * 0.08;
+                    arrastando = false; turnoEmAndamento = true;
 
                     chatChannel.send({ type: 'broadcast', event: 'chute', payload: { 
                         id: pecaArrastada.id, vx: pecaArrastada.vx, vy: pecaArrastada.vy 
@@ -336,38 +346,38 @@
             });
 
             function loop() {
-                // Fundo do Campo
-                ctx.fillStyle = '#2ecc71'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Desenhar Fundo e Grama Listrada 3D
+                ctx.fillStyle = '#1e272e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                for(let i = 60; i < 1140; i += 60) {
+                    ctx.fillStyle = (i % 120 === 0) ? '#44bd32' : '#4cd137';
+                    ctx.fillRect(i, 0, 60, 700);
+                }
                 
-                // Desenhar as Redes dos Gols
-                ctx.fillStyle = '#bdc3c7';
-                ctx.fillRect(0, 250, 60, 200); // Rede Esquerda
-                ctx.fillRect(1140, 250, 60, 200); // Rede Direita
+                // Desenhar Redes (Fundo e textura)
+                ctx.fillStyle = '#7f8fa6';
+                ctx.fillRect(0, 250, 60, 200); ctx.fillRect(1140, 250, 60, 200); 
 
-                // Padronagem da rede (linhas cruzadas)
-                ctx.strokeStyle = '#95a5a6'; ctx.lineWidth = 2;
-                for(let i = 0; i <= 60; i += 15) {
+                ctx.strokeStyle = '#dcdde1'; ctx.lineWidth = 1;
+                for(let i = 0; i <= 60; i += 10) {
                     ctx.beginPath(); ctx.moveTo(i, 250); ctx.lineTo(i, 450); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(1140 + i, 250); ctx.lineTo(1140 + i, 450); ctx.stroke();
                 }
-                for(let i = 250; i <= 450; i += 15) {
+                for(let i = 250; i <= 450; i += 10) {
                     ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(60, i); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(1140, i); ctx.lineTo(1200, i); ctx.stroke();
                 }
 
-                // Linhas do Campo (Meio e Área)
-                ctx.strokeStyle = 'white'; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(600, 0); ctx.lineTo(600, 700); ctx.stroke(); // Meio
-                ctx.beginPath(); ctx.arc(600, 350, 80, 0, Math.PI * 2); ctx.stroke(); // Circulo Central
-                
-                ctx.strokeRect(0, 150, 180, 400); // Grande Área Esquerda
-                ctx.strokeRect(1020, 150, 180, 400); // Grande Área Direita
+                // Linhas Brancas do Campo
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.moveTo(600, 0); ctx.lineTo(600, 700); ctx.stroke();
+                ctx.beginPath(); ctx.arc(600, 350, 80, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeRect(60, 150, 150, 400); // Área Esq
+                ctx.strokeRect(990, 150, 150, 400); // Área Dir
 
                 let todasAsPecas = [...timeCasa, ...timeVis, bola];
 
                 if (!arrastando && jogoIniciado) {
                     todasAsPecas.forEach(p => moverPeca(p, canvas.width, canvas.height));
-                    
                     for (let i = 0; i < todasAsPecas.length; i++) {
                         for (let j = i + 1; j < todasAsPecas.length; j++) {
                             calcularColisao(todasAsPecas[i], todasAsPecas[j]);
@@ -375,55 +385,71 @@
                     }
                 }
 
-                // Lógica de Gols e Turnos (SOMENTE O HOST)
+                // Gols e Turnos (HOST)
                 let velTotal = todasAsPecas.reduce((acc, p) => acc + Math.abs(p.vx) + Math.abs(p.vy), 0);
-                
                 if (turnoEmAndamento && velTotal < 0.25 && souCasa) {
-                    // Bola dentro da rede (Gol Casa ou Visitante)
                     if (bola.x < 60 && bola.y > 250 && bola.y < 450) {
-                        golsVis++; turnoDaCasa = true; 
+                        golsVis++; turnoDaCasa = true; // Gol do Vis, Casa recomeça
                         chatChannel.send({ type: 'broadcast', event: 'gol', payload: { gc: golsCasa, gv: golsVis, turnoCasa: turnoDaCasa }});
                         resetarPosicoes();
                     } else if (bola.x > 1140 && bola.y > 250 && bola.y < 450) {
-                        golsCasa++; turnoDaCasa = false; 
+                        golsCasa++; turnoDaCasa = false; // Gol da Casa, Vis recomeça
                         chatChannel.send({ type: 'broadcast', event: 'gol', payload: { gc: golsCasa, gv: golsVis, turnoCasa: turnoDaCasa }});
                         resetarPosicoes();
                     } else {
                         turnoDaCasa = !turnoDaCasa;
                         chatChannel.send({ type: 'broadcast', event: 'sincronizar', payload: { 
-                            turnoCasa: turnoDaCasa, 
-                            posCasa: timeCasa.map(b => ({x: b.x, y: b.y})), 
-                            posVis: timeVis.map(b => ({x: b.x, y: b.y})), 
-                            blX: bola.x, blY: bola.y 
+                            turnoCasa: turnoDaCasa, posCasa: timeCasa.map(b => ({x: b.x, y: b.y})), 
+                            posVis: timeVis.map(b => ({x: b.x, y: b.y})), blX: bola.x, blY: bola.y 
                         }});
                         turnoEmAndamento = false;
                         atualizarStatusTurno();
                     }
                 }
 
-                // Linha de Mira
+                // Miras (Arrasto)
                 if (arrastando && pecaArrastada) {
-                    ctx.beginPath(); ctx.moveTo(pecaArrastada.x, pecaArrastada.y); ctx.lineTo(mX, mY);
-                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)'; ctx.lineWidth = 4; ctx.stroke();
+                    let dx = pecaArrastada.x - mX; let dy = pecaArrastada.y - mY;
+                    let dist = Math.hypot(dx, dy); let forcaMax = 200;
+                    if (dist > forcaMax) { dx = (dx / dist) * forcaMax; dy = (dy / dist) * forcaMax; }
+
+                    // Linha Vermelha Puxando
+                    ctx.beginPath(); ctx.moveTo(pecaArrastada.x, pecaArrastada.y); ctx.lineTo(pecaArrastada.x - dx, pecaArrastada.y - dy);
+                    ctx.strokeStyle = 'rgba(232, 65, 24, 0.6)'; ctx.lineWidth = 5; ctx.stroke();
+
+                    // Linha Branca Mirando
+                    ctx.beginPath(); ctx.setLineDash([8, 8]);
+                    ctx.moveTo(pecaArrastada.x, pecaArrastada.y); ctx.lineTo(pecaArrastada.x + (dx * 2.5), pecaArrastada.y + (dy * 2.5));
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.setLineDash([]);
                 }
 
-                // Função de Desenho Aprimorada (Goleiros e Linha)
+                // Desenho 3D das Peças
                 function desenhar(p, corOFicial, isBola = false) {
-                    ctx.beginPath(); 
-                    ctx.arc(p.x, p.y, p.raio, 0, Math.PI * 2);
-                    ctx.fillStyle = corOFicial; ctx.fill();
-                    ctx.strokeStyle = isBola ? '#000' : '#fff'; 
-                    ctx.lineWidth = isBola ? 2 : 3; 
-                    ctx.stroke();
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
 
-                    // Se for goleiro (Raio 35), desenha um detalhe extra dentro
-                    if (p.raio === 35 && !isBola) {
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.raio, 0, Math.PI * 2);
+                    
+                    // Efeito Acrílico/Plástico
+                    let gradiente = ctx.createRadialGradient(p.x - p.raio/3, p.y - p.raio/3, p.raio/10, p.x, p.y, p.raio);
+                    if (isBola) {
+                        gradiente.addColorStop(0, '#ffffff'); gradiente.addColorStop(1, '#7f8fa6');
+                    } else {
+                        gradiente.addColorStop(0, '#ffffff'); 
+                        gradiente.addColorStop(0.3, corOFicial); 
+                        gradiente.addColorStop(1, '#2f3640');
                     }
+                    
+                    ctx.fillStyle = gradiente; ctx.fill();
+                    ctx.strokeStyle = isBola ? '#2f3640' : '#ffffff'; ctx.lineWidth = isBola ? 1 : 2; ctx.stroke();
+
+                    // Detalhe extra no Goleiro
+                    if (p.raio === 35 && !isBola) {
+                        ctx.beginPath(); ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 4; ctx.stroke();
+                    }
+                    ctx.restore();
                 }
                 
                 timeCasa.forEach(b => desenhar(b, corCasa));
