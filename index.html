@@ -101,21 +101,21 @@
         let corCasa = '#ff0000', corVis = '#0000ff';
         let golsCasa = 0, golsVis = 0;
 
-        // Posições com o campo reajustado (Linhas da lateral nos X=60 e X=1140)
+        // POSIÇÕES CORRIGIDAS E SIMÉTRICAS (Ninguém nasce sobreposto)
         const inicioCasa = [
-            { x: 100, y: 350, r: 35 },  // Goleiro
-            { x: 350, y: 200, r: 25 },
-            { x: 500, y: 350, r: 25 },
-            { x: 350, y: 500, r: 25 },
-            { x: 700, y: 350, r: 25 }
+            { x: 80, y: 350, r: 35 },   // Goleiro
+            { x: 300, y: 200, r: 25 },  // Zaga Sup
+            { x: 300, y: 500, r: 25 },  // Zaga Inf
+            { x: 450, y: 350, r: 25 },  // Meia
+            { x: 540, y: 350, r: 25 }   // Atacante (Mais perto da bola que fica no 600)
         ];
         
         const inicioVis = [
-            { x: 1100, y: 350, r: 35 }, // Goleiro
-            { x: 850, y: 200, r: 25 },
-            { x: 700, y: 350, r: 25 },
-            { x: 850, y: 500, r: 25 },
-            { x: 500, y: 350, r: 25 }
+            { x: 1120, y: 350, r: 35 }, // Goleiro
+            { x: 900, y: 200, r: 25 },  // Zaga Sup
+            { x: 900, y: 500, r: 25 },  // Zaga Inf
+            { x: 750, y: 350, r: 25 },  // Meia
+            { x: 660, y: 350, r: 25 }   // Atacante
         ];
 
         let timeCasa = inicioCasa.map((p, i) => ({ id: i, x: p.x, y: p.y, raio: p.r, vx: 0, vy: 0 }));
@@ -248,10 +248,17 @@
             cx.scrollTop = cx.scrollHeight;
         }
 
-        // FÍSICA E COLISÃO
+        // FÍSICA E COLISÃO (COM PROTEÇÃO CONTRA BUGS)
         function calcularColisao(a, b) {
             let dx = b.x - a.x, dy = b.y - a.y;
             let dist = Math.hypot(dx, dy);
+            
+            // TRAVA DE SEGURANÇA: Previne o erro "NaN" caso duas peças fiquem exatamente no mesmo pixel
+            if (dist === 0) { 
+                dx = 1; 
+                dist = 1; 
+            }
+
             if (dist < a.raio + b.raio) {
                 let sobre = (a.raio + b.raio) - dist;
                 let nx = dx / dist, ny = dy / dist;
@@ -271,22 +278,18 @@
             if (Math.abs(p.vx) < 0.05) p.vx = 0; 
             if (Math.abs(p.vy) < 0.05) p.vy = 0;
 
-            // Limites das laterais e fundo da rede
             let naAreaEsq = p.y > 250 && p.y < 450;
             let naAreaDir = p.y > 250 && p.y < 450;
             
-            let limEsq = naAreaEsq ? 0 : 60;   // A rede vai até o 0
-            let limDir = naAreaDir ? 1200 : 1140; // A rede vai até o 1200
+            let limEsq = naAreaEsq ? 0 : 60;   
+            let limDir = naAreaDir ? 1200 : 1140; 
 
-            // Bater nas paredes Laterais
             if (p.x + p.raio > limDir) { p.x = limDir - p.raio; p.vx *= -0.7; }
             if (p.x - p.raio < limEsq) { p.x = limEsq + p.raio; p.vx *= -0.7; }
             
-            // Bater nas paredes de Cima e Baixo
             if (p.y + p.raio > h) { p.y = h - p.raio; p.vy *= -0.7; }
             if (p.y - p.raio < 0) { p.y = p.raio; p.vy *= -0.7; }
 
-            // Bater nas "quinas" da trave se tentar sair do gol pela lateral
             if (p.x < 60) {
                 if (p.y - p.raio < 250) { p.y = 250 + p.raio; p.vy *= -0.7; }
                 if (p.y + p.raio > 450) { p.y = 450 - p.raio; p.vy *= -0.7; }
@@ -327,14 +330,14 @@
                     let dx = pecaArrastada.x - mX;
                     let dy = pecaArrastada.y - mY;
                     let dist = Math.hypot(dx, dy);
-                    let forcaMax = 200; // Limite do elástico
+                    let forcaMax = 200; 
                     
                     if (dist > forcaMax) {
                         dx = (dx / dist) * forcaMax;
                         dy = (dy / dist) * forcaMax;
                     }
 
-                    pecaArrastada.vx = dx * 0.08; // Multiplicador ajustado para suavidade
+                    pecaArrastada.vx = dx * 0.08; 
                     pecaArrastada.vy = dy * 0.08;
                     arrastando = false; turnoEmAndamento = true;
 
@@ -346,14 +349,12 @@
             });
 
             function loop() {
-                // Desenhar Fundo e Grama Listrada 3D
                 ctx.fillStyle = '#1e272e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 for(let i = 60; i < 1140; i += 60) {
                     ctx.fillStyle = (i % 120 === 0) ? '#44bd32' : '#4cd137';
                     ctx.fillRect(i, 0, 60, 700);
                 }
                 
-                // Desenhar Redes (Fundo e textura)
                 ctx.fillStyle = '#7f8fa6';
                 ctx.fillRect(0, 250, 60, 200); ctx.fillRect(1140, 250, 60, 200); 
 
@@ -367,12 +368,11 @@
                     ctx.beginPath(); ctx.moveTo(1140, i); ctx.lineTo(1200, i); ctx.stroke();
                 }
 
-                // Linhas Brancas do Campo
                 ctx.strokeStyle = 'rgba(255,255,255,0.8)'; ctx.lineWidth = 4;
                 ctx.beginPath(); ctx.moveTo(600, 0); ctx.lineTo(600, 700); ctx.stroke();
                 ctx.beginPath(); ctx.arc(600, 350, 80, 0, Math.PI * 2); ctx.stroke();
-                ctx.strokeRect(60, 150, 150, 400); // Área Esq
-                ctx.strokeRect(990, 150, 150, 400); // Área Dir
+                ctx.strokeRect(60, 150, 150, 400); 
+                ctx.strokeRect(990, 150, 150, 400); 
 
                 let todasAsPecas = [...timeCasa, ...timeVis, bola];
 
@@ -385,15 +385,14 @@
                     }
                 }
 
-                // Gols e Turnos (HOST)
                 let velTotal = todasAsPecas.reduce((acc, p) => acc + Math.abs(p.vx) + Math.abs(p.vy), 0);
                 if (turnoEmAndamento && velTotal < 0.25 && souCasa) {
                     if (bola.x < 60 && bola.y > 250 && bola.y < 450) {
-                        golsVis++; turnoDaCasa = true; // Gol do Vis, Casa recomeça
+                        golsVis++; turnoDaCasa = true; 
                         chatChannel.send({ type: 'broadcast', event: 'gol', payload: { gc: golsCasa, gv: golsVis, turnoCasa: turnoDaCasa }});
                         resetarPosicoes();
                     } else if (bola.x > 1140 && bola.y > 250 && bola.y < 450) {
-                        golsCasa++; turnoDaCasa = false; // Gol da Casa, Vis recomeça
+                        golsCasa++; turnoDaCasa = false; 
                         chatChannel.send({ type: 'broadcast', event: 'gol', payload: { gc: golsCasa, gv: golsVis, turnoCasa: turnoDaCasa }});
                         resetarPosicoes();
                     } else {
@@ -407,31 +406,26 @@
                     }
                 }
 
-                // Miras (Arrasto)
                 if (arrastando && pecaArrastada) {
                     let dx = pecaArrastada.x - mX; let dy = pecaArrastada.y - mY;
                     let dist = Math.hypot(dx, dy); let forcaMax = 200;
                     if (dist > forcaMax) { dx = (dx / dist) * forcaMax; dy = (dy / dist) * forcaMax; }
 
-                    // Linha Vermelha Puxando
                     ctx.beginPath(); ctx.moveTo(pecaArrastada.x, pecaArrastada.y); ctx.lineTo(pecaArrastada.x - dx, pecaArrastada.y - dy);
                     ctx.strokeStyle = 'rgba(232, 65, 24, 0.6)'; ctx.lineWidth = 5; ctx.stroke();
 
-                    // Linha Branca Mirando
                     ctx.beginPath(); ctx.setLineDash([8, 8]);
                     ctx.moveTo(pecaArrastada.x, pecaArrastada.y); ctx.lineTo(pecaArrastada.x + (dx * 2.5), pecaArrastada.y + (dy * 2.5));
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
                     ctx.setLineDash([]);
                 }
 
-                // Desenho 3D das Peças
                 function desenhar(p, corOFicial, isBola = false) {
                     ctx.save();
                     ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
 
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.raio, 0, Math.PI * 2);
                     
-                    // Efeito Acrílico/Plástico
                     let gradiente = ctx.createRadialGradient(p.x - p.raio/3, p.y - p.raio/3, p.raio/10, p.x, p.y, p.raio);
                     if (isBola) {
                         gradiente.addColorStop(0, '#ffffff'); gradiente.addColorStop(1, '#7f8fa6');
@@ -444,7 +438,6 @@
                     ctx.fillStyle = gradiente; ctx.fill();
                     ctx.strokeStyle = isBola ? '#2f3640' : '#ffffff'; ctx.lineWidth = isBola ? 1 : 2; ctx.stroke();
 
-                    // Detalhe extra no Goleiro
                     if (p.raio === 35 && !isBola) {
                         ctx.beginPath(); ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
                         ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 4; ctx.stroke();
