@@ -101,21 +101,20 @@
         let corCasa = '#ff0000', corVis = '#0000ff';
         let golsCasa = 0, golsVis = 0;
 
-        // POSIÇÕES CORRIGIDAS E SIMÉTRICAS (Ninguém nasce sobreposto)
         const inicioCasa = [
-            { x: 80, y: 350, r: 35 },   // Goleiro
-            { x: 300, y: 200, r: 25 },  // Zaga Sup
-            { x: 300, y: 500, r: 25 },  // Zaga Inf
-            { x: 450, y: 350, r: 25 },  // Meia
-            { x: 540, y: 350, r: 25 }   // Atacante (Mais perto da bola que fica no 600)
+            { x: 80, y: 350, r: 35 },
+            { x: 300, y: 200, r: 25 },
+            { x: 300, y: 500, r: 25 },
+            { x: 450, y: 350, r: 25 },
+            { x: 540, y: 350, r: 25 }
         ];
         
         const inicioVis = [
-            { x: 1120, y: 350, r: 35 }, // Goleiro
-            { x: 900, y: 200, r: 25 },  // Zaga Sup
-            { x: 900, y: 500, r: 25 },  // Zaga Inf
-            { x: 750, y: 350, r: 25 },  // Meia
-            { x: 660, y: 350, r: 25 }   // Atacante
+            { x: 1120, y: 350, r: 35 },
+            { x: 900, y: 200, r: 25 },
+            { x: 900, y: 500, r: 25 },
+            { x: 750, y: 350, r: 25 },
+            { x: 660, y: 350, r: 25 }
         ];
 
         let timeCasa = inicioCasa.map((p, i) => ({ id: i, x: p.x, y: p.y, raio: p.r, vx: 0, vy: 0 }));
@@ -202,8 +201,6 @@
 
             chatChannel.on('broadcast', { event: 'gol' }, (p) => {
                 golsCasa = p.payload.gc; golsVis = p.payload.gv;
-                document.getElementById('gols-casa').innerText = golsCasa;
-                document.getElementById('gols-vis').innerText = golsVis;
                 turnoDaCasa = p.payload.turnoCasa;
                 resetarPosicoes();
             });
@@ -229,11 +226,15 @@
             timeCasa.forEach((b, i) => { b.x = inicioCasa[i].x; b.y = inicioCasa[i].y; b.vx = 0; b.vy = 0; });
             timeVis.forEach((b, i) => { b.x = inicioVis[i].x; b.y = inicioVis[i].y; b.vx = 0; b.vy = 0; });
             bola.x = 600; bola.y = 350; bola.vx = 0; bola.vy = 0;
+            
+            // ATUALIZAÇÃO DO PLACAR FIXADA AQUI (Acontece para ambos os jogadores)
+            document.getElementById('gols-casa').innerText = golsCasa;
+            document.getElementById('gols-vis').innerText = golsVis;
+            
             turnoEmAndamento = false;
             atualizarStatusTurno();
         }
 
-        // CHAT
         function enviarMensagem() {
             const i = document.getElementById('texto-mensagem');
             if (i.value.trim() === '') return;
@@ -248,16 +249,11 @@
             cx.scrollTop = cx.scrollHeight;
         }
 
-        // FÍSICA E COLISÃO (COM PROTEÇÃO CONTRA BUGS)
         function calcularColisao(a, b) {
             let dx = b.x - a.x, dy = b.y - a.y;
             let dist = Math.hypot(dx, dy);
             
-            // TRAVA DE SEGURANÇA: Previne o erro "NaN" caso duas peças fiquem exatamente no mesmo pixel
-            if (dist === 0) { 
-                dx = 1; 
-                dist = 1; 
-            }
+            if (dist === 0) { dx = 1; dist = 1; }
 
             if (dist < a.raio + b.raio) {
                 let sobre = (a.raio + b.raio) - dist;
