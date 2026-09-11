@@ -13,7 +13,7 @@
         #tela-login input { margin: 10px; padding: 10px; border-radius: 5px; border: none; width: 200px; }
         #tela-login button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        #tela-jogo { display: none; width: 100%; max-width: 1200px; margin-top: 20px; display: none; justify-content: space-between; }
+        #tela-jogo { display: none; width: 100%; max-width: 1200px; margin-top: 20px; justify-content: space-between; }
         
         #campo-container { flex: 2; display: flex; justify-content: center; }
         canvas { background-color: #2ecc71; border: 5px solid #ecf0f1; border-radius: 10px; cursor: crosshair; }
@@ -55,9 +55,11 @@
 
     <script>
         // === CONFIGURAÇÃO SUPABASE ===
-        const supabaseUrl = 'https://imdmajqeevevtuulcauu.supabase.co'; // COLE SUA URL AQUI
-        const supabaseKey = 'sb_publishable_QS8QvgodsDUey5eRX-YyGA_LWHAfNtc'; // COLE SUA CHAVE AQUI
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseUrl = 'https://imdmajqeevevtuulcauu.supabase.co'; 
+        const supabaseKey = 'sb_publishable_QS8QvgodsDUey5eRX-YyGA_LWHAfNtc'; 
+        
+        // Conectando ao banco de dados usando o nome correto para evitar erro
+        const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
         // Dados do Jogador
         let jogador = { nome: '', time: '', cor: '' };
@@ -77,8 +79,8 @@
 
         // === LÓGICA DO CHAT (SUPABASE REALTIME) ===
         function iniciarChat() {
-            // Cria um canal de comunicação que não precisa salvar no banco, apenas envia ao vivo (Broadcast)
-            chatChannel = supabase.channel('sala-global');
+            // Cria um canal de comunicação
+            chatChannel = clienteSupabase.channel('sala-global');
             
             chatChannel.on('broadcast', { event: 'mensagem' }, (payload) => {
                 mostrarMensagemNaTela(payload.payload.nome, payload.payload.time, payload.payload.cor, payload.payload.texto);
