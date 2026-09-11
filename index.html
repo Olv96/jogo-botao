@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Futebol de Botão Online</title>
-    <!-- Importando o Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         body { font-family: Arial, sans-serif; background-color: #2c3e50; color: white; margin: 0; display: flex; flex-direction: column; align-items: center; }
         
         #tela-login { background: #34495e; padding: 30px; border-radius: 10px; margin-top: 50px; text-align: center; }
-        #tela-login input { margin: 10px; padding: 10px; border-radius: 5px; border: none; width: 200px; }
-        #tela-login button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #tela-login input, #tela-login select { margin: 10px; padding: 10px; border-radius: 5px; border: none; width: 220px; }
+        #tela-login button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         
         #tela-jogo { display: none; width: 100%; max-width: 1200px; margin-top: 20px; justify-content: space-between; }
         
-        #campo-container { flex: 2; display: flex; justify-content: center; }
+        #painel-jogo { flex: 2; display: flex; flex-direction: column; align-items: center; }
+        #painel-topo { width: 800px; display: flex; justify-content: space-between; align-items: center; background: #34495e; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        #status-turno { font-size: 20px; font-weight: bold; color: #f1c40f; }
+        
         canvas { background-color: #2ecc71; border: 5px solid #ecf0f1; border-radius: 10px; cursor: crosshair; }
         
         #chat-container { flex: 1; background: #34495e; margin-left: 20px; border-radius: 10px; display: flex; flex-direction: column; height: 600px; }
@@ -32,22 +34,32 @@
         <h2>Futebol de Botão</h2>
         <input type="text" id="nome-jogador" placeholder="Seu Nome (Ex: Zico)"><br>
         <input type="text" id="nome-time" placeholder="Nome do Time"><br>
-        <label>Cor do seu time no Chat:</label><br>
+        
+        <select id="tipo-jogador">
+            <option value="casa">Time da Casa (Joga 1º)</option>
+            <option value="visitante">Visitante (Joga 2º)</option>
+        </select><br>
+
+        <label>Cor do seu time:</label><br>
         <input type="color" id="cor-jogador" value="#ff0000"><br>
         <button onclick="entrarNoJogo()">Entrar no Jogo</button>
     </div>
 
-    <!-- TELA DO JOGO (CAMPO + CHAT) -->
+    <!-- TELA DO JOGO -->
     <div id="tela-jogo">
-        <div id="campo-container">
-            <!-- Campo de jogo -->
+        <div id="painel-jogo">
+            <div id="painel-topo">
+                <div id="meu-time-info">Time</div>
+                <div id="status-turno">AGUARDANDO...</div>
+                <div id="adversario-info">Adversário</div>
+            </div>
             <canvas id="campo" width="800" height="600"></canvas>
         </div>
         
         <div id="chat-container">
             <div id="mensagens"></div>
             <div id="input-chat">
-                <input type="text" id="texto-mensagem" placeholder="Digite uma mensagem..." onkeypress="verificarEnter(event)">
+                <input type="text" id="texto-mensagem" placeholder="Chat..." onkeypress="verificarEnter(event)">
                 <button onclick="enviarMensagem()">Enviar</button>
             </div>
         </div>
@@ -57,87 +69,177 @@
         // === CONFIGURAÇÃO SUPABASE ===
         const supabaseUrl = 'https://imdmajqeevevtuulcauu.supabase.co'; 
         const supabaseKey = 'sb_publishable_QS8QvgodsDUey5eRX-YyGA_LWHAfNtc'; 
-        
-        // Conectando ao banco de dados usando o nome correto para evitar erro
         const clienteSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
-        // Dados do Jogador
+        // === VARIÁVEIS GLOBAIS DO JOGO ===
         let jogador = { nome: '', time: '', cor: '' };
         let chatChannel;
+        let jogoChannel;
+        
+        // Controle de Turnos
+        let souCasa = true; // Se eu sou o jogador 1
+        let turnoDaCasa = true; // De quem é a vez agora
+        let turnoEmAndamento = false; // Bloqueia ações enquanto as peças estão deslizando
+
+        // Elementos do Jogo
+        let bola = { x: 400, y: 300, raio: 12, vx: 0, vy: 0, cor: '#ffffff' };
+        let botaoCasa = { x: 200, y: 300, raio: 25, vx: 0, vy: 0, cor: '#ff0000' };
+        let botaoVis = { x: 600, y: 300, raio: 25, vx: 0, vy: 0, cor: '#0000ff' };
+        
+        let meuBotao; // Ponteiro para saber qual botão eu controlo
 
         function entrarNoJogo() {
             jogador.nome = document.getElementById('nome-jogador').value || 'Jogador';
             jogador.time = document.getElementById('nome-time').value || 'Time';
             jogador.cor = document.getElementById('cor-jogador').value;
+            
+            const tipo = document.getElementById('tipo-jogador').value;
+            souCasa = (tipo === 'casa');
+            
+            if (souCasa) {
+                meuBotao = botaoCasa;
+                botaoCasa.cor = jogador.cor;
+            } else {
+                meuBotao = botaoVis;
+                botaoVis.cor = jogador.cor;
+            }
 
+            document.getElementById('meu-time-info').innerText = jogador.time;
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('tela-jogo').style.display = 'flex';
 
-            iniciarChat();
+            atualizarStatusTurno();
+            iniciarConexao();
             iniciarFisicaDoJogo();
         }
 
-        // === LÓGICA DO CHAT (SUPABASE REALTIME) ===
-        function iniciarChat() {
-            // Cria um canal de comunicação
+        // === CONEXÃO (CHAT E JOGO) ===
+        function iniciarConexao() {
+            // Canal da sala (usado pro chat e pra física)
             chatChannel = clienteSupabase.channel('sala-global');
             
-            chatChannel.on('broadcast', { event: 'mensagem' }, (payload) => {
-                mostrarMensagemNaTela(payload.payload.nome, payload.payload.time, payload.payload.cor, payload.payload.texto);
-            }).subscribe();
+            // Ouvindo Mensagens do Chat
+            chatChannel.on('broadcast', { event: 'mensagem' }, (p) => {
+                mostrarMensagemNaTela(p.payload.nome, p.payload.time, p.payload.cor, p.payload.texto);
+            });
+
+            // Ouvindo Chute do Oponente
+            chatChannel.on('broadcast', { event: 'chute' }, (p) => {
+                let dados = p.payload;
+                // Recebo a força do chute e aplico no botão do oponente
+                if (souCasa) {
+                    botaoVis.vx = dados.vx; botaoVis.vy = dados.vy;
+                    botaoVis.x = dados.x; botaoVis.y = dados.y;
+                } else {
+                    botaoCasa.vx = dados.vx; botaoCasa.vy = dados.vy;
+                    botaoCasa.x = dados.x; botaoCasa.y = dados.y;
+                }
+                turnoEmAndamento = true; // Trava o jogo enquanto desliza
+            });
+
+            // Ouvindo Fim de Jogada (Sincroniza posições e passa a vez)
+            chatChannel.on('broadcast', { event: 'fim_jogada' }, (p) => {
+                let d = p.payload;
+                turnoDaCasa = d.turnoCasa;
+                botaoCasa.x = d.bcX; botaoCasa.y = d.bcY;
+                botaoVis.x = d.bvX; botaoVis.y = d.bvY;
+                bola.x = d.blX; bola.y = d.blY;
+                
+                // Zera movimentos
+                botaoCasa.vx = 0; botaoCasa.vy = 0;
+                botaoVis.vx = 0; botaoVis.vy = 0;
+                bola.vx = 0; bola.vy = 0;
+                
+                turnoEmAndamento = false;
+                atualizarStatusTurno();
+            });
+
+            chatChannel.subscribe();
         }
 
+        // === FUNÇÕES DE CHAT (MANTIDAS) ===
         function enviarMensagem() {
             const input = document.getElementById('texto-mensagem');
             const texto = input.value.trim();
             if (texto === '') return;
-
-            // Envia a mensagem para os outros
-            chatChannel.send({
-                type: 'broadcast',
-                event: 'mensagem',
-                payload: { nome: jogador.nome, time: jogador.time, cor: jogador.cor, texto: texto }
-            });
-
-            // Mostra a própria mensagem na tela
+            chatChannel.send({ type: 'broadcast', event: 'mensagem', payload: { nome: jogador.nome, time: jogador.time, cor: jogador.cor, texto: texto } });
             mostrarMensagemNaTela(jogador.nome, jogador.time, jogador.cor, texto);
             input.value = '';
         }
-
-        function verificarEnter(event) {
-            if (event.key === 'Enter') enviarMensagem();
-        }
-
+        function verificarEnter(event) { if (event.key === 'Enter') enviarMensagem(); }
         function mostrarMensagemNaTela(nome, time, cor, texto) {
             const caixa = document.getElementById('mensagens');
-            caixa.innerHTML += `<div style="margin-bottom: 5px;">
-                <b style="color: ${cor}">[${time}] ${nome}:</b> <span style="color: white">${texto}</span>
-            </div>`;
-            caixa.scrollTop = caixa.scrollHeight; // Rola pro final
+            caixa.innerHTML += `<div style="margin-bottom: 5px;"><b style="color: ${cor}">[${time}] ${nome}:</b> <span style="color: white">${texto}</span></div>`;
+            caixa.scrollTop = caixa.scrollHeight;
         }
 
-        // === FÍSICA DO JOGO (ARRASTAR E SOLTAR) ===
+        // === LÓGICA DE TURNOS ===
+        function atualizarStatusTurno() {
+            const status = document.getElementById('status-turno');
+            if (souCasa === turnoDaCasa) {
+                status.innerText = "SUA VEZ DE JOGAR!";
+                status.style.color = "#2ecc71"; // Verde
+            } else {
+                status.innerText = "Vez do Oponente...";
+                status.style.color = "#e74c3c"; // Vermelho
+            }
+        }
+
+        // === FÍSICA E COLISÕES ===
+        function calcularColisao(a, b) {
+            let dx = b.x - a.x;
+            let dy = b.y - a.y;
+            let dist = Math.hypot(dx, dy);
+            
+            if (dist < a.raio + b.raio) {
+                // Afasta as peças para não entrarem uma na outra
+                let sobreposicao = (a.raio + b.raio) - dist;
+                let nx = dx / dist;
+                let ny = dy / dist;
+                a.x -= nx * (sobreposicao / 2);
+                a.y -= ny * (sobreposicao / 2);
+                b.x += nx * (sobreposicao / 2);
+                b.y += ny * (sobreposicao / 2);
+
+                // Troca de energia (Física de bilhar)
+                let p = 2 * (a.vx * nx + a.vy * ny - b.vx * nx - b.vy * ny) / 2;
+                a.vx -= p * nx;
+                a.vy -= p * ny;
+                b.vx += p * nx;
+                b.vy += p * ny;
+            }
+        }
+
+        function moverPeca(peca, w, h) {
+            peca.x += peca.vx;
+            peca.y += peca.vy;
+            peca.vx *= 0.98; // Atrito
+            peca.vy *= 0.98;
+
+            // Bater nas paredes
+            if (peca.x + peca.raio > w) { peca.x = w - peca.raio; peca.vx *= -0.8; }
+            if (peca.x - peca.raio < 0) { peca.x = peca.raio; peca.vx *= -0.8; }
+            if (peca.y + peca.raio > h) { peca.y = h - peca.raio; peca.vy *= -0.8; }
+            if (peca.y - peca.raio < 0) { peca.y = peca.raio; peca.vy *= -0.8; }
+        }
+
         function iniciarFisicaDoJogo() {
             const canvas = document.getElementById('campo');
             const ctx = canvas.getContext('2d');
-
-            // Nosso botão (jogador)
-            let botao = { x: 200, y: 300, raio: 25, vx: 0, vy: 0, cor: jogador.cor };
             
-            // Variáveis de controle do mouse
             let arrastando = false;
-            let mouseX = 0;
-            let mouseY = 0;
+            let mouseX = 0, mouseY = 0;
 
-            // Eventos de Mouse
             canvas.addEventListener('mousedown', (e) => {
+                // SÓ PODE CLICAR SE FOR A SUA VEZ E NADA ESTIVER SE MOVENDO
+                if (souCasa !== turnoDaCasa || turnoEmAndamento) return; 
+
                 const rect = canvas.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const clickY = e.clientY - rect.top;
                 
-                // Verifica se clicou no botão
-                const dist = Math.hypot(clickX - botao.x, clickY - botao.y);
-                if (dist < botao.raio) { arrastando = true; }
+                const dist = Math.hypot(clickX - meuBotao.x, clickY - meuBotao.y);
+                if (dist < meuBotao.raio) { arrastando = true; }
             });
 
             canvas.addEventListener('mousemove', (e) => {
@@ -148,65 +250,100 @@
 
             canvas.addEventListener('mouseup', () => {
                 if (arrastando) {
-                    // Ao soltar, aplica força na direção oposta ao arrasto (como um estilingue)
-                    botao.vx = (botao.x - mouseX) * 0.1;
-                    botao.vy = (botao.y - mouseY) * 0.1;
+                    // Dá o chute (estilingue)
+                    meuBotao.vx = (meuBotao.x - mouseX) * 0.15;
+                    meuBotao.vy = (meuBotao.y - mouseY) * 0.15;
                     arrastando = false;
+                    turnoEmAndamento = true; // Trava o jogo até parar
+
+                    // AVISA O OPONENTE DO CHUTE
+                    chatChannel.send({
+                        type: 'broadcast',
+                        event: 'chute',
+                        payload: { vx: meuBotao.vx, vy: meuBotao.vy, x: meuBotao.x, y: meuBotao.y }
+                    });
                 }
             });
 
-            // Loop principal do jogo (roda 60 vezes por segundo)
             function loop() {
-                // Limpa o canvas (desenha a grama)
+                // 1. Desenha o Campo
                 ctx.fillStyle = '#2ecc71';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Desenha as linhas do campo (básico)
                 ctx.strokeStyle = 'white';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(canvas.width / 2, 0);
-                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.moveTo(canvas.width / 2, 0); ctx.lineTo(canvas.width / 2, canvas.height);
                 ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2, canvas.height / 2, 50, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.beginPath(); ctx.arc(canvas.width / 2, canvas.height / 2, 70, 0, Math.PI * 2); ctx.stroke();
 
-                // Física do Botão
+                // 2. Lógica de Movimento e Colisão
                 if (!arrastando) {
-                    botao.x += botao.vx;
-                    botao.y += botao.vy;
-                    // Atrito (para o botão parar de deslizar)
-                    botao.vx *= 0.98;
-                    botao.vy *= 0.98;
+                    moverPeca(botaoCasa, canvas.width, canvas.height);
+                    moverPeca(botaoVis, canvas.width, canvas.height);
+                    moverPeca(bola, canvas.width, canvas.height);
 
-                    // Colisão com as paredes do campo
-                    if (botao.x + botao.raio > canvas.width || botao.x - botao.raio < 0) botao.vx *= -1;
-                    if (botao.y + botao.raio > canvas.height || botao.y - botao.raio < 0) botao.vy *= -1;
+                    calcularColisao(botaoCasa, bola);
+                    calcularColisao(botaoVis, bola);
+                    calcularColisao(botaoCasa, botaoVis);
                 }
 
-                // Desenha a linha de mira (se estiver arrastando)
+                // 3. Checa se o turno acabou (Tudo parou de se mover)
+                if (turnoEmAndamento) {
+                    let velTotal = Math.abs(botaoCasa.vx) + Math.abs(botaoCasa.vy) + 
+                                   Math.abs(botaoVis.vx) + Math.abs(botaoVis.vy) + 
+                                   Math.abs(bola.vx) + Math.abs(bola.vy);
+                    
+                    if (velTotal < 0.2) { // Tudo parou
+                        turnoEmAndamento = false;
+                        
+                        // O jogador que chutou é o responsável por passar a vez pro outro
+                        if (souCasa === turnoDaCasa) {
+                            turnoDaCasa = !turnoDaCasa; // Inverte a vez
+                            atualizarStatusTurno();
+                            
+                            // Avisa o oponente que a vez mudou e manda as posições exatas pra ninguém ficar fora de sincronia
+                            chatChannel.send({
+                                type: 'broadcast', event: 'fim_jogada',
+                                payload: { 
+                                    turnoCasa: turnoDaCasa,
+                                    bcX: botaoCasa.x, bcY: botaoCasa.y,
+                                    bvX: botaoVis.x, bvY: botaoVis.y,
+                                    blX: bola.x, blY: bola.y
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // 4. Desenha a linha do estilingue
                 if (arrastando) {
                     ctx.beginPath();
-                    ctx.moveTo(botao.x, botao.y);
+                    ctx.moveTo(meuBotao.x, meuBotao.y);
                     ctx.lineTo(mouseX, mouseY);
-                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                    ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
                     ctx.lineWidth = 4;
                     ctx.stroke();
                 }
 
-                // Desenha o Botão
-                ctx.beginPath();
-                ctx.arc(botao.x, botao.y, botao.raio, 0, Math.PI * 2);
-                ctx.fillStyle = botao.cor;
-                ctx.fill();
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                // 5. Desenha as Peças
+                function desenhar(peca) {
+                    ctx.beginPath();
+                    ctx.arc(peca.x, peca.y, peca.raio, 0, Math.PI * 2);
+                    ctx.fillStyle = peca.cor;
+                    ctx.fill();
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                desenhar(botaoCasa);
+                desenhar(botaoVis);
+                desenhar(bola); // A bola também passa pela mesma função de desenho
 
                 requestAnimationFrame(loop);
             }
-            loop(); // Inicia o loop
+            loop(); // Roda 60x por segundo
         }
     </script>
 </body>
